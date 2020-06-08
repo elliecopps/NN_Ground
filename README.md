@@ -42,3 +42,7 @@ self.show_Ens = True
 ```
 
 Change the first boolean to True to see the bipartitions, and the second boolean to False to stop showing the ground state array and current energy.
+
+## Errors
+
+I haven't implemented code to deal with errors. If you put non integer values in the boxes or a number that's too big the program will just crash. That's fine, just run it again. This is also not entirely bug proof, so don't be surprised if it crashes with normal inputs, but hopefully that won't happen. 
