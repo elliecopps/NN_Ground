@@ -15,6 +15,7 @@ from PyQt5.QtWidgets import QApplication
 
 
 
+
 class Window(QMainWindow):
 	def __init__(self):
 		QMainWindow.__init__(self)
@@ -31,6 +32,9 @@ class Window(QMainWindow):
 		self.left= 100
 		self.width = 1000
 		self.height = 750
+
+
+		(self.Swidth,self.Sheight) = scaleDims(self.width,self.height)
 
 
 		# Set initial parameters
@@ -58,110 +62,44 @@ class Window(QMainWindow):
 
 
 
+		self.clear = False
+
 		self.setStyleSheet("background-color: white;")
 
-		if self.show_Ens:
-			self.Ealabel = QLabel(self)
-			self.Ealabel.setFont(QFont('Decorative', 13))
-			self.Ealabel.setStyleSheet("color: black")
-			self.Ealabel.resize(300,30)
-			self.Ealabel.move(20,50)
-			self.Ealabel.setText('GS Configurations: ' + str(self.gs))
-
-			self.Enlabel = QLabel(self)
-			self.Enlabel.setFont(QFont('Decorative', 13))
-			self.Enlabel.setStyleSheet("color: black")
-			self.Enlabel.resize(200,30)
-			self.Enlabel.move(20,80)
-			self.Enlabel.setText('Current Energy: ' + str(self.ea[self.cnfg]))
-
+		self.Ealabel = QLabel(self)
+		self.Enlabel = QLabel(self)
 		self.Clabel = QLabel(self)
-		self.Clabel.setFont(QFont('Decorative', 13))
-		self.Clabel.setStyleSheet("color: black")
-		self.Clabel.resize(400,30)
-		self.Clabel.move(700,20)
-		self.Clabel.setText('Configuration: ' + str(self.configuration))
-		
 		self.cEdit = QLineEdit(self)
-		self.cEdit.setStyleSheet("color: black")
-		self.cEdit.move(80, 700)
-		self.cEdit.resize(100,32)
 		self.cLabel = QLabel(self)
-		self.cLabel.setStyleSheet("color: black")
-		self.cLabel.setText("Config")
-		self.cLabel.move(20,700)
-		self.cLabel.resize(50,32)
-
 		self.countLabel = QLabel(self)
-		self.countLabel.setStyleSheet("color: black")
-		self.countLabel.setText("unsatisfied: ")
-		self.countLabel.move(20,200)
-		self.countLabel.resize(100,32)
-
-
 		self.scountLabel = QLabel(self)
-		self.scountLabel.setStyleSheet("color: black")
-		self.scountLabel.setText("satisfied: ")
-		self.scountLabel.move(20,250)
-		self.scountLabel.resize(100,32)
-
 		self.sEdit = QLineEdit(self)
-		self.sEdit.setStyleSheet("color: black")
-		self.sEdit.move(80, 650)
-		self.sEdit.resize(100,32)
 		self.sLabel = QLabel(self)
-		self.sLabel.setStyleSheet("color: black")
-		self.sLabel.setText("Seed")
-		self.sLabel.move(20,650)
-		self.sLabel.resize(50,32)
-
 		self.pEdit = QLineEdit(self)
-		self.pEdit.setStyleSheet("color: black")
-		self.pEdit.move(850, 650)
-		self.pEdit.resize(100,32)
 		self.pLabel = QLabel(self)
-		self.pLabel.setStyleSheet("color: black")
-		self.pLabel.setText("Bipartition")
-		self.pLabel.move(740,650)
-		self.pLabel.resize(75,32)
-
-
 		self.NEdit = QLineEdit(self)
-		self.NEdit.setStyleSheet("color: black")
-		self.NEdit.move(80, 600)
-		self.NEdit.resize(100,32)
 		self.NLabel = QLabel(self)
-		self.NLabel.setStyleSheet("color: black")
-		self.NLabel.setText("N")
-		self.NLabel.move(20,600)
-		self.NLabel.resize(50,32)
-
 		self.pybutton = QPushButton('Enter', self)
 		self.pybutton.setStyleSheet("QPushButton {color: white; background-color: black}")
 		self.pybutton.clicked.connect(self.clickMethod)
-		self.pybutton.resize(100,32)
-		self.pybutton.move(300, 700)
-
-		self.clear = False
 		self.Cpybutton = QPushButton('Clear', self)
 		self.Cpybutton.setStyleSheet("QPushButton {color: white; background-color: black}")
 		self.Cpybutton.clicked.connect(self.clearMethod)
-		self.Cpybutton.resize(100,32)
-		self.Cpybutton.move(10, 10)
+		self.Resizebutton = QPushButton('Resize', self)
+		self.Resizebutton.setStyleSheet("QPushButton {color: white; background-color: black}")
+		self.Resizebutton.clicked.connect(self.resizeMethod)
 
 
 
-		
+
+		self.editLabels()
+
 		self.InitWindow()
+
 
 	def keyPressEvent(self, qKeyEvent):
 		if qKeyEvent.key() == QtCore.Qt.Key_Return: 
 			self.clickMethod()
-
-
-	def clickMethod(self):
-		thread = threading.Thread(target=self.DynMethod())
-		thread.start()
 
 
 	def InitWindow(self):
@@ -173,41 +111,24 @@ class Window(QMainWindow):
 		thread = threading.Thread(target=self.DynMethod())
 		thread.start()
 
+	def resizeMethod(self):
+		self.width = self.size().width()
+		self.height = self.size().height()
+		(self.Swidth,self.Sheight) = scaleDims(self.width,self.height)
+		self.editLabels()
+		self.repaint()
+
 	def clearMethod(self):
 		if not self.clear:
-			self.Clabel.move(1000,20)
-			self.cEdit.move(1000, 700)
-			self.cLabel.move(1000,700)
-			self.sEdit.move(1000, 650)
-			self.sLabel.move(1000,650)
-			self.NEdit.move(1000, 600)
-			self.NLabel.move(1000,600)
-			self.pybutton.move(1000, 700)
-			self.pLabel.move(1000,800)
-			self.pEdit.move(1000,900)
-			self.countLabel.move(1000,200)
-			self.scountLabel.move(1000,250)
-			if self.show_Ens:
-				self.Ealabel.move(1000,50)
-				self.Enlabel.move(1000,80)
 			self.clear = True
+			self.Sheight += 99999
+			self.editLabels()
+			self.Sheight -= 99999
 		else:
-			self.Clabel.move(700,20)
-			self.cEdit.move(80, 700)
-			self.cLabel.move(20,700)
-			self.sEdit.move(80, 650)
-			self.sLabel.move(20,650)
-			self.NEdit.move(80, 600)
-			self.NLabel.move(20,600)
-			self.pybutton.move(300, 700)
-			self.pLabel.move(740,650)
-			self.pEdit.move(850, 650)
-			self.countLabel.move(20,200)
-			self.scountLabel.move(20,250)
-			if self.show_Ens:
-				self.Ealabel.move(20,50)
-				self.Enlabel.move(20,80)
 			self.clear = False
+			self.editLabels()
+
+
 
 
 
@@ -268,6 +189,7 @@ class Window(QMainWindow):
 
 
 
+
 		ps = self.pEdit.text()
 		if len(ps) > 0:
 			bp = int(ps)
@@ -278,11 +200,14 @@ class Window(QMainWindow):
 		self.repaint()
 
 
+		
+
 
 
 	def paintEvent(self,event):
 		qp = QPainter()
 		qp.begin(self)
+		qp.scale(self.Swidth/1000,self.Swidth/1000)
 		qp.setPen(QPen(Qt.blue, 3))
 		self.drawBonds(qp,self.coordList,self.configuration)
 		self.drawSpins(qp,self.coordList)
@@ -348,12 +273,127 @@ class Window(QMainWindow):
 		qp.drawLine(coords[0]-10,coords[1]-(dir*5),coords[0],coords[1]-(dir*15))
 		qp.drawLine(coords[0]+10,coords[1]-(dir*5),coords[0],coords[1]-(dir*15))
 
+	def editLabels(self):
 
+
+		fontsize = (self.Swidth/1000)*13
+
+
+		if self.show_Ens:
+			
+			self.Ealabel.setFont(QFont('Decorative', fontsize))
+			self.Ealabel.setStyleSheet("color: black")
+			self.Ealabel.resize(0.3*self.Swidth,0.04*self.Sheight)
+			self.Ealabel.move(0.02*self.Swidth,0.067*self.Sheight)
+			self.Ealabel.setText('GS Configurations: ' + str(self.gs))
+
+			
+			self.Enlabel.setFont(QFont('Decorative', fontsize))
+			self.Enlabel.setStyleSheet("color: black")
+			self.Enlabel.resize(0.2*self.Swidth,0.04*self.Sheight)
+			self.Enlabel.move(0.02*self.Swidth,0.107*self.Sheight)
+			self.Enlabel.setText('Current Energy: ' + str(self.ea[self.cnfg]))
+
+		
+		self.Clabel.setFont(QFont('Decorative', fontsize))
+		self.Clabel.setStyleSheet("color: black")
+		self.Clabel.resize(0.4*self.Swidth,0.04*self.Sheight)
+		self.Clabel.move(0.7*self.Swidth,0.023*self.Sheight)
+		self.Clabel.setText('Configuration: ' + str(self.configuration))
+		
+		
+		self.cEdit.setStyleSheet("color: black")
+		self.cEdit.move(0.08*self.Swidth, 0.933*self.Sheight)
+		self.cEdit.resize(0.1*self.Swidth,0.043*self.Sheight)
+		
+		self.cLabel.setStyleSheet("color: black")
+		self.cLabel.setFont(QFont('Decorative', fontsize))
+		self.cLabel.setText("Config")
+		self.cLabel.move(0.02*self.Swidth,0.93*self.Sheight)
+		self.cLabel.resize(0.05*self.Swidth,0.043*self.Sheight)
+
+		
+		self.countLabel.setStyleSheet("color: black")
+		self.countLabel.setFont(QFont('Decorative', fontsize))
+		self.countLabel.setText("unsatisfied: ")
+		self.countLabel.move(0.02*self.Swidth,0.267*self.Sheight)
+		self.countLabel.resize(0.1*self.Swidth,0.043*self.Sheight)
+
+
+		
+		self.scountLabel.setStyleSheet("color: black")
+		self.scountLabel.setFont(QFont('Decorative', fontsize))
+		self.scountLabel.setText("satisfied: ")
+		self.scountLabel.move(0.02*self.Swidth,0.333*self.Sheight)
+		self.scountLabel.resize(0.1*self.Swidth,0.043*self.Sheight)
+
+		
+		self.sEdit.setStyleSheet("color: black")
+		self.sEdit.move(0.08*self.Swidth, 0.867*self.Sheight)
+		self.sEdit.resize(0.1*self.Swidth,0.043*self.Sheight)
+		
+		self.sLabel.setStyleSheet("color: black")
+		self.sLabel.setFont(QFont('Decorative', fontsize))
+		self.sLabel.setText("Seed")
+		self.sLabel.move(0.02*self.Swidth,0.867*self.Sheight)
+		self.sLabel.resize(0.05*self.Swidth,0.043*self.Sheight)
+
+		
+		self.pEdit.setStyleSheet("color: black")
+		self.pEdit.move(0.85*self.Swidth, 0.867*self.Sheight)
+		self.pEdit.resize(0.1*self.Swidth,0.043*self.Sheight)
+		
+		self.pLabel.setStyleSheet("color: black")
+		self.pLabel.setFont(QFont('Decorative', fontsize))
+		self.pLabel.setText("Bipartition")
+		self.pLabel.move(0.74*self.Swidth,0.867*self.Sheight)
+		self.pLabel.resize(0.075*self.Swidth,0.043*self.Sheight)
+
+
+		
+		self.NEdit.setStyleSheet("color: black")
+		self.NEdit.move(0.08*self.Swidth, 0.8*self.Sheight)
+		self.NEdit.resize(0.1*self.Swidth,0.043*self.Sheight)
+		
+		self.NLabel.setStyleSheet("color: black")
+		self.NLabel.setFont(QFont('Decorative', fontsize))
+		self.NLabel.setText("N")
+		self.NLabel.move(0.02*self.Swidth,0.8*self.Sheight)
+		self.NLabel.resize(0.05*self.Swidth,0.043*self.Sheight)
+
+		
+
+		self.pybutton.resize(0.1*self.Swidth,0.043*self.Sheight)
+		self.pybutton.move(0.3*self.Swidth, 0.933*self.Sheight)
+		
+
+		if not self.clear:
+			self.Cpybutton.resize(0.1*self.Swidth,0.043*self.Sheight)
+			self.Cpybutton.move(0.01*self.Swidth, 0.013*self.Sheight)
+
+		
+
+		self.Resizebutton.resize(0.1*self.Swidth,0.043*self.Sheight)
+		self.Resizebutton.move(0.12*self.Swidth, 0.013*self.Sheight)
+
+
+		
 
 
 
         
+def scaleDims(width,height):
+	if height/width > 00.75:
+		Swidth = width
+		Sheight = width*0.75
+	elif height/width < 00.75:
+		Swidth = height/0.75
+		Sheight = height
+	else:
+		Swidth = width
+		Sheight = height
 
+	return(Swidth,Sheight)
 
 def spinCoords(N,center,r):
 	coords = []
