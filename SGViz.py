@@ -241,8 +241,8 @@ class Window(QMainWindow):
 				ci = coordList[i]
 				cj = coordList[j]
 				qp.drawLine(ci[0],ci[1],cj[0],cj[1])
-		self.countLabel.setText("Unsatisfied: " + str(sum(self.ubondCountArray)))
-		self.scountLabel.setText("Satisfied: " + str(sum(self.sbondCountArray)))
+		self.countLabel.setText("Unsatisfied: " + str(sum(self.ubondCountArray)//2))
+		self.scountLabel.setText("Satisfied: " + str(sum(self.sbondCountArray)//2))
 
 	def labelSpins(self, qp, coordList):
 		qp.setPen(Qt.black)
