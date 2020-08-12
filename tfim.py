@@ -87,7 +87,7 @@ class Lattice:
                         - int(not self.PBC)*( 1 if (self.D == 1)
                             else int(not self.PBC)*(sum(L)) ) )                       
     
-    def NN(i):
+    def NN(self, i):
         """Returns a list of nearest neighbors of site i"""
         if self.D == 1:
             if i == 0:
@@ -100,7 +100,35 @@ class Lattice:
                 is_left = True
                 left_NN = i - 1
                 
-            NNs = []
+        
+        else:
+            height = self.L[0]
+            width = self.L[1]
+            NNS = []
+            above = i - width
+            below = i + width
+            left = i - 1
+            right = i + 1
+            if i > width - 1:
+                NNS.append(above)
+            else:
+                if self.PBC == True:
+                    NNS.append(i + (height-1)*width)
+            if i < self.N - width:
+                NNS.append(below)
+            else:
+                if self.PBC == True:
+                    NNS.append(i - (height-1)*width)
+            if i % width != 0:
+                NNS.append(left)
+            else:
+                if self.PBC == True:
+                    NNS.append(i + width - 1)
+            if (i+1) % width != 0:
+                NNS.append(right)
+            else:
+                if self.PBC == True:
+                    NNS.append(i - width + 1)
         return NNS
     
     def config(self,state):
@@ -219,7 +247,6 @@ def JZZ_SK_ME(basis,J):
     """ Computes matrix elements for the SK interactions
         and returns each as a 1D np.array
         --JZZ = \sum_{i,j} J_{ij}\sigma^z_i \sigma^z_j"""
-    
     JZZ = np.zeros(basis.M)
     shift_state = np.zeros(basis.N,dtype=int)
     for b in range(basis.M):
