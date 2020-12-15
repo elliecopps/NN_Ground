@@ -117,28 +117,28 @@ def main():
         '''
         if not inc:
             ground_states.update({seed:ground_config})
-            print('seed: ', seed)
+            #print('seed: ', seed)
             ground_config = list(set(ground_config))
             ground_config.sort()
-            print("ground states: ", ground_config)
+            #print("ground states: ", ground_config)
                 
             #Figure out if the ground states that I find are the same as these
-            Jij2 = Jij_convert(Jij, N) #gives the Jij matrix that tfim is gonna need
-            Energies = -1*tfim.JZZ_SK_ME(basis, Jij2)
-            number_ground = num_ground_states(Energies)[0]
-            states = num_ground_states(Energies)[1]
-            states.sort()
-            mod_states = convert_states(states, basis)
-            mod_states.sort()
-            print("From tfim: ", mod_states)
+            #Jij2 = Jij_convert(Jij, N) #gives the Jij matrix that tfim is gonna need
+            #Energies = -1*tfim.JZZ_SK_ME(basis, Jij2)
+            #number_ground = num_ground_states(Energies)[0]
+            #states = num_ground_states(Energies)[1]
+            #states.sort()
+            #mod_states = convert_states(states, basis)
+            #mod_states.sort()
+            #print("From tfim: ", mod_states)
                 
-            if ground_config != mod_states:
-                different.append(seed)
-                print("Different!")
+            #if ground_config != mod_states:
+                #different.append(seed)
+                #print("Different!")
                 
             
             
-    print("Different seeds: ", different)
+    #print("Different seeds: ", different)
     f.write(json.dumps(ground_states))
     f.close()
 
