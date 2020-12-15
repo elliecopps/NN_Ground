@@ -45,7 +45,7 @@ class Window(QMainWindow):
         self.L = [self.yheight, self.xwidth]
         self.lattice = tfim.Lattice(self.L, self.PBC)
         self.N = self.lattice.N
-        self.seed = 0
+        self.seed = 150
         if self.draw_lattice == False:
             self.bonds = bond_list(self)
             self.Jij = make_Jij(self)
@@ -966,8 +966,8 @@ def broken_bonds(self):
                         if (p2+1) % self.xwidth == 0:
                             if p1 % self.xwidth == 0:
                                 sp1 = p1
-                            else:
-                                sp1 = p2
+                        else:
+                            sp1 = p2
                         sp2 = sp1 - (self.xwidth * (self.yheight - 1))
                     elif (p2+1) % self.xwidth == 0:
                         if p1 % self.xwidth == 0:
@@ -988,7 +988,7 @@ def make_config(self):
     ground_states = []
     true_strings = []
     s_index = 0
-    print('initial number potential ground states: ', len(self.string_groups))
+    #print('initial number potential ground states: ', len(self.string_groups))
     for Jij in self.b_bonds:
         broken = Jij[0]
         bonds = self.Jij
@@ -999,6 +999,7 @@ def make_config(self):
         #Loop through all other spins
         for sp1 in range(1, self.N):
             if valid == False:
+                #print('String group: ', self.string_groups[Jij[1]])
                 break
             if sp1 % self.xwidth == 0:
                 sp2 = sp1 - self.xwidth
@@ -1034,19 +1035,23 @@ def make_config(self):
                         if status == 1: #Spins should be opposite
                             if spin1 == spini:
                                 valid = False
+                                #print("1")
                                 break
                         else: #Spins should be same
                             if spin1 != spini:
                                 valid = False
+                                #print("2")
                                 break
                     else: #Spins want to be opposite
                         if status == 1: #spins should be same
                             if spini != spin1:
                                 valid = False
+                                #print("3")
                                 break
                         else: #Spins should be opposite
                             if spini == spin1:
                                 valid = False
+                                #print("4")
                                 break
         if valid:
             index = 0
@@ -1058,7 +1063,7 @@ def make_config(self):
             s_index +=1
             true_strings.append(self.string_groups[Jij[1]])
             
-    print('ground states: ', ground_states)
+    #print('ground states: ', ground_states)
     return ground_states, true_strings
     
 def bondColor(Jij,i,j):
