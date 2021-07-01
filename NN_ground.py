@@ -75,24 +75,24 @@ def main():
         number_ground_states = len(true_ground_strings)
         
         
-        if number_ground_states == 0:
+        if number_ground_states == 0:  #This means that we assumed a total string length that did not produce any actual ground states. The strategy to fix that is to add to the total string length until we find ground states.
             found_ground = False
             inc = True
-            #found_ground = True
             
         else:
-            found_ground = True
+            found_ground = True    #This is the part where it works
             inc = False
             #print("Ground distance for something that's working : ", ground_distance)
         
+        #Below is the piece that isn't working as well. It tends to return some correct ground states, but has not worked fully yet. You can check things with the tfim code, but it takes a while for that to return anything. I wouldn't use tfim for anything too far beyond a 4x4 system, or it takes too long.
         '''
         incremented = 0
-        print("Initial number of broken bonds: ", ground_distance)
+        
         while found_ground == False:
             incremented += 1
-            ground_distance += 1
+            ground_distance += 1     #This adds to the total string distance that we are assuming will                          #produce a ground state
             if ground_distance > 100:
-                break
+                break   #Breaks out of the whole thing if the code has run too far
                 
             edges = viable_edges(node_pairs, p_pairings, ground_distance, f_plaq, xwidth, yheight)
             
@@ -112,33 +112,32 @@ def main():
                 
                 number_ground_states = len(true_ground_strings)
                 
-                if number_ground_states != 0:
+                if number_ground_states != 0:  #If it finds ground states, we can break out of the while                             #loop
                     found_ground = True
         '''
+        #If you are running with the incremented states, you would change this so that incremented states can also get in (inc stands for incremented and means that we increased the initial minimum assumed string length)
         if not inc:
             ground_states.update({seed:ground_config})
-            #print('seed: ', seed)
             ground_config = list(set(ground_config))
             ground_config.sort()
-            #print("ground states: ", ground_config)
                 
-            #Figure out if the ground states that I find are the same as these
-            #Jij2 = Jij_convert(Jij, N) #gives the Jij matrix that tfim is gonna need
-            #Energies = -1*tfim.JZZ_SK_ME(basis, Jij2)
-            #number_ground = num_ground_states(Energies)[0]
-            #states = num_ground_states(Energies)[1]
-            #states.sort()
-            #mod_states = convert_states(states, basis)
-            #mod_states.sort()
-            #print("From tfim: ", mod_states)
+            #This whole piece will check whether you are returning ground states that are correct by checking them against tfim. Again, don't run this bit if you are doing much beyond a 4x4 system or tfim takes forever
+            Jij2 = Jij_convert(Jij, N) #gives the Jij matrix in tfim's form
+            Energies = -1*tfim.JZZ_SK_ME(basis, Jij2)
+            number_ground = num_ground_states(Energies)[0]
+            states = num_ground_states(Energies)[1]
+            states.sort()
+            mod_states = convert_states(states, basis)
+            mod_states.sort()
+            print("From tfim: ", mod_states)
                 
-            #if ground_config != mod_states:
-                #different.append(seed)
-                #print("Different!")
+            if ground_config != mod_states:
+                different.append(seed)
+                print("Different!")   #Lets you know when this code isn't working
                 
             
             
-    #print("Different seeds: ", different)
+    print("Different seeds: ", different)
     f.write(json.dumps(ground_states))
     f.close()
 
@@ -160,6 +159,8 @@ def bond_list(seed, N, PBC, xwidth, yheight):
     return a
 
 def make_Jij(N, b_list, lattice):
+    #Goes through the list of bonds to make the jij matrix that tells you how all of the spins are bonded to each other
+    
     bond_index = 0
     Jij = np.zeros((N,N))
     for i in range(0,N):
@@ -173,6 +174,8 @@ def make_Jij(N, b_list, lattice):
     
     
 def make_plaquettes(PBC, lattice, N, xwidth, yheight):
+    #Makes a list of plaquettes; each entry is a list that contains the four spins that form the plaquettes, where the first spin listed is the plaquette "name"
+
     p_list = []
     if PBC:
         for i in range(0, N):
@@ -183,7 +186,7 @@ def make_plaquettes(PBC, lattice, N, xwidth, yheight):
             plaq.append(NNs2[1])
             plaq.append(NNs[1])
             p_list.append(plaq)
-    else:
+    else:     #this whole statement doesn't matter unless you aren't using periodic boundary conditions
         for y in range(0,yheight):
             for x in range(0, xwidth):
                 if y == yheight-1 or x == xwidth-1: #This part adds empty plaquettes so the first number is also the index of each plaquette
@@ -201,6 +204,8 @@ def make_plaquettes(PBC, lattice, N, xwidth, yheight):
     
     
 def frustrated(Jij, plaqs):
+    #Makes a list of frustrated plaquettes by seeing how many antiferromagnetic bonds are in the plaquette (1 or 3 means frustrated)
+    #List is made of the first spin in each frustrated plaquette
     f_plaq = []
     for plaq in plaqs:
         count = 0
@@ -221,6 +226,7 @@ def frustrated(Jij, plaqs):
         
 def plaq_pairing(f_plaq, coordList, PBC, xwidth, yheight):
     '''Function returns a list of all possible pairs between frustrated plaquettes with the distances between them–The distance is stored as the maximum possible distance between two plaquettes minus the actual distance'''
+    #Sort of confusing part here: To make things work in the initial_ground function, I am storing the distance between the plaquettes as sort of the opposite. If the maximum possible distance between two plaquettes is 4, and the plaquettes are right next to each other, the distance is stored as 3. If the plaquettes are 4 apart, the distance is stored as 1.
     pair_list = []
     for index, p1 in enumerate(f_plaq):
         coord1 = coordList[p1]
@@ -262,6 +268,7 @@ def initial_ground(pair_list, xwidth, yheight):
   G = nx.Graph()
   G.add_weighted_edges_from(pair_list) #makes graph of all node pairs
   matching = nx.max_weight_matching(G) #gives one solution
+  #max_weight_matching is the reason the pair distance from the last function is a little confusing - this function matches things up to give the largest total distance between all plaquettes. Since we stored the distances sort of backwards, this will give us the minimum weight matching
   ground_dist = 0
   p_pairs = []
   for pair in matching:
@@ -275,11 +282,14 @@ def initial_ground(pair_list, xwidth, yheight):
       p_pairs.append([pair, pair_dist]) #adds solution from above to list with pairs and pair distance
   #print ("P PAIRS: " p_pairs)
   return p_pairs, ground_dist #So this is the first pairing p_pairs that will lead to a ground state if the lowest distance between plaquettes is the correct energy
+  #ground_dist here tells us what we can expect the total string length to be for the rest of the ground states
 
 
 
 def viable_edges(pair_list, p_pairs, ground_dist, f_plaq, xwidth, yheight):
-  '''Function takes the list of all possible pairings of nodes and returns a list of all combinations of those nodes that would result in a ground state energy'''
+  '''Function takes the list of all possible pairings of nodes and returns a list of lists. Each list in it corresponds to one of the frustrated plaquettes and has all of the edges that could be used to make a ground state with that plaquette'''
+  #This uses the ground_dist returned in the last function
+  #If we did not find a ground state with the minimum ground distance, this will use an incremented ground distance
   
   edge_lst = []
   plaq_dict = {}
@@ -292,6 +302,8 @@ def viable_edges(pair_list, p_pairs, ground_dist, f_plaq, xwidth, yheight):
   G = nx.Graph()
   G.add_weighted_edges_from(pair_list)  #creates a graph with edges between each pair in pair_list
  
+  #This bit just checks if p_pairs, the ground state that we found in the last function, has the ground_dist that we are looking for
+  #It will if we haven't incremented anything yet
   first = False
   p_dist = 0
   for pair in p_pairs:
@@ -302,7 +314,7 @@ def viable_edges(pair_list, p_pairs, ground_dist, f_plaq, xwidth, yheight):
       
 
   
-  if first:   #if the initial ground distance for p_pairs is good, we add the edges from p_pairs
+  if first:   #if the initial ground distance for p_pairs is good, we add the edges from p_pairs to the list of viable edges
       for pair in p_pairs:
           plaq = pair[0][0]
           ind = plaq_dict.get(plaq)
@@ -310,23 +322,26 @@ def viable_edges(pair_list, p_pairs, ground_dist, f_plaq, xwidth, yheight):
     
     
   loopnum = 0
-  for plaq2 in f_plaq:  #Making this plaq 2 for all elements of the loop?
+  for plaq2 in f_plaq:   #We start looping through each frustrated plaquette
   
       G2 = G.copy()  #returns us to a full graph of pairs each time we loop through a plaquette
       
       loopnum += 1
       
       if first:
-          for pair in p_pairs:
+          for pair in p_pairs:   #Remember p_pairs is the list of pairs in the ground state we found above
               if pair[0][1] == plaq2 or pair[0][0] == plaq2:
                   #print("Removing edge: ", pair)
-                  G2.remove_edge(*pair[0])   #We remove the edge that includes the plaquette we are currently on because we already have the best matching for that edge
+                  G2.remove_edge(*pair[0])  #Remove the edge in our graph that has already been added to edge_lst above
                   break
               
       ground_energy = True
       while ground_energy == True:
+                #This chunk builds the best ground state it can by using the edges in the graph called matching
+                #Once it builds the ground state, it removes the edge that contains the plaquette we are currently on, and then it makes another matching to see if any other ground states include that edge paired with a different plaquette
       
-          matching = nx.max_weight_matching(G2) #make the best graph for the edges left
+      
+          matching = nx.max_weight_matching(G2) #make the best graph for the edges that we haven't yet removed
           if len(matching) != len(f_plaq)/2: #This would happen if we have taken out all edges for a particular plaquette
               ground_energy = False
               break  #takes us back to loop through edges for a new plaquette
@@ -338,26 +353,26 @@ def viable_edges(pair_list, p_pairs, ground_dist, f_plaq, xwidth, yheight):
                   rem_edge = (pair[0], pair[1])  #the edge that we are going to remove
               pair_dist = (xwidth//2 + yheight//2)-edge['weight']  #the actual distance
               new_length += pair_dist
-              if pair[0] > pair[1]:
+              if pair[0] > pair[1]:  #This makes it so the first listed spin is the smaller one
                   p0 = pair[1]
                   p1 = pair[0]
                   pair = (p0, p1)
               new_group.append([pair, pair_dist])
               
-          if new_length == ground_dist: #if we made a possible ground state
+          if new_length == ground_dist: #if we made a possible ground state from the matching
           
               G2.remove_edge(*rem_edge)  #removes the edge with the current plaquette in it
           
-              for pair in new_group:
+              for pair in new_group:    #"new group" is a group of edges for the plaquette we are on
                   plaq3 = pair [0][0]
                   ind = plaq_dict.get(plaq3)
                   
                   if pair not in edge_lst[ind]:
                       edge_lst[ind].append(pair)
-          elif new_length < ground_dist:
+          elif new_length < ground_dist:   #This would only happen if you are incrementing the minimum ground distance, might be a spot where the code isn't doing what we want
               G2.remove_edge(*rem_edge)
           else:
-              ground_energy = False
+              ground_energy = False   #This means that we have taken all possible ground states for that plaquette, and we need to move to the next one
               ind = plaq_dict[plaq2]
               
                 
@@ -370,10 +385,13 @@ def viable_edges(pair_list, p_pairs, ground_dist, f_plaq, xwidth, yheight):
       edge_lst = []
   #print('Edges: ', edge_lst)
   #print("here")
+  
   return edge_lst
 
 
 def plaq_groups(edges, f_plaq, ground_dist):
+    '''This function returns all of the potential ground states at this point. Each state is made of pairs of plaquettes'''
+    
     
     group = []
     used_plaquettes = []
@@ -390,9 +408,10 @@ def plaq_groups(edges, f_plaq, ground_dist):
     for index, plaq in enumerate(f_plaq): #Allows me to find the index of the frustrated plaquettes
         plaq_dict[plaq] = index
     #print(edges)
-    #The main piece of the function
     
-    #This is important if there are only two frustrated plaquettes
+    '''The main piece of the function'''
+    
+    #This is only important if there are only two frustrated plaquettes
     if len(f_plaq) == 2:
         for i in edges[current_plaq:]:
             for pair in i:
@@ -527,6 +546,7 @@ def plaq_groups(edges, f_plaq, ground_dist):
     
 
 def add_all_strings(groups, lattice, coordList):
+    '''Takes all of the ground states from the last function, and sees if the plaquette pairs can form more than one string path between them'''
     edges = []
     for i in range(len(coordList)):
         NNs = lattice.NN(i)
@@ -555,14 +575,13 @@ def add_all_strings(groups, lattice, coordList):
         path_combos = it.product(*single_pairing) #
         for combo in path_combos:
             all_groups.append(combo)
-    #print("all possible paths: ")
-    #for i in range(0, len(all_groups)):
-        #print(all_groups[i])
+
     return all_groups #This function returns potential ground states in the form of groups of paths that represent bonds that should be broken
+    '''When I say "path" I just mean the path that the string will take between two frustrated plaquettes. Each bond that the string goes through will be broked in the final state'''
     
 
 def broken_bonds(string_groups, N, coordList, xwidth, yheight):
-    '''Returns an NxN matrix with 1's where there are broken bonds between two spins'''
+    '''Returns a list of NxN matrices. Each matrix corresponds to a potential ground state with 1's where there are broken bonds between two spins'''
     config_Jij_list = []
     for str_index, state in enumerate(string_groups):
         config_Jij = np.zeros((N,N)) #makes a Jij matrix that will eventually give the locations of broken bonds
@@ -625,7 +644,8 @@ def broken_bonds(string_groups, N, coordList, xwidth, yheight):
     return config_Jij_list  #a list of Jij matrices of broken bonds, the str_index says which path group it correponds to in string_groups from the function add_all_strings
     
 def make_config(b_bonds, bonds, N, xwidth, lattice, string_groups):
-    #print("got to make_config with ", b_bonds)
+    #This funciton will go through all of the potential ground states that we found and check to see if the bond configuration will allow those ground states to actually work
+    #Function is working
     ground_states = []
     true_strings = []
     for Jij in b_bonds:
